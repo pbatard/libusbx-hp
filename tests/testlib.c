@@ -19,6 +19,10 @@
 
 #include "libusbx_testlib.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>

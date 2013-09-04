@@ -1921,7 +1921,6 @@ void API_EXPORTED libusb_exit(struct libusb_context *ctx)
 			return;
 		}
 		usbi_dbg("destroying default context");
-		usbi_default_context = NULL;
 	}
 	usbi_mutex_static_unlock(&default_context_lock);
 
@@ -1953,6 +1952,11 @@ void API_EXPORTED libusb_exit(struct libusb_context *ctx)
 	usbi_mutex_destroy(&ctx->open_devs_lock);
 	usbi_mutex_destroy(&ctx->usb_devs_lock);
 	usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
+
+	if (ctx == usbi_default_context) {
+		usbi_default_context = NULL;
+	}
+
 	free(ctx);
 }
 

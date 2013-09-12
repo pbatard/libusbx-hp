@@ -37,7 +37,7 @@
 #define false FALSE
 #endif
 
-#define safe_free(p) do {if (p != NULL) {free((void*)p); p = NULL;}} while(0)
+#define safe_free(p) do {if (p != NULL) {free(p); p = NULL;}} while(0)
 #define safe_closehandle(h) do {if (h != INVALID_HANDLE_VALUE) {CloseHandle(h); h = INVALID_HANDLE_VALUE;}} while(0)
 #define safe_min(a, b) min((size_t)(a), (size_t)(b))
 #define safe_strcp(dst, dst_max, src, count) do {memcpy(dst, src, safe_min(count, dst_max)); \

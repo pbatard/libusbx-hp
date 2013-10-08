@@ -24,6 +24,26 @@
 
 #include "windows_common.h"
 
+#include "setupapi.h"
+#include "winnt.h"
+
+#ifndef PCTSTR
+#ifdef UNICODE
+typedef LPCWSTR PCTSTR;
+#else
+typedef LPCSTR PCTSTR;
+#endif
+#endif
+
+#ifndef PTSTR
+#ifdef UNICODE
+typedef LPWSTR PTSTR;
+#else
+typedef LPSTR PTSTR;
+#endif
+#endif
+
+
 #if defined(_MSC_VER)
 // disable /W4 MSVC warnings that are benign
 #pragma warning(disable:4127) // conditional expression is constant
@@ -208,7 +228,6 @@ struct windows_device_priv {
 	uint8_t depth;						// distance to HCD
 	uint8_t port;						// port number on the hub
 	uint8_t active_config;
-	struct libusb_device *parent_dev;	// access to parent is required for usermode ops
 	struct windows_usb_api_backend const *apib;
 	char *path;							// device interface path
 	int sub_api;						// for WinUSB-like APIs
@@ -227,6 +246,7 @@ struct windows_device_priv {
 };
 
 static inline struct windows_device_priv *_device_priv(struct libusb_device *dev) {
+	if (dev == NULL) return NULL;
 	return (struct windows_device_priv *)dev->os_priv;
 }
 
@@ -271,6 +291,8 @@ DLL_DECLARE_PREFIXED(WINAPI, HRESULT, p, CLSIDFromString, (LPCOLESTR, LPCLSID));
 
 /* SetupAPI dependencies */
 DLL_DECLARE_PREFIXED(WINAPI, HDEVINFO, p, SetupDiGetClassDevsA, (const GUID*, PCSTR, HWND, DWORD));
+DLL_DECLARE_PREFIXED(WINAPI, HDEVINFO, p, SetupDiGetClassDevsExA, (const GUID*, PCSTR, HWND, DWORD, HDEVINFO, PCTSTR, PVOID));
+DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, SetupDiGetDeviceInstanceIdA, (HDEVINFO, PSP_DEVINFO_DATA, PTSTR, DWORD, PDWORD));
 DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, SetupDiEnumDeviceInfo, (HDEVINFO, DWORD, PSP_DEVINFO_DATA));
 DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, SetupDiEnumDeviceInterfaces, (HDEVINFO, PSP_DEVINFO_DATA,
 			const GUID*, DWORD, PSP_DEVICE_INTERFACE_DATA));

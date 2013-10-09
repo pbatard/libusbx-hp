@@ -390,7 +390,9 @@ static SP_DEVICE_INTERFACE_DETAIL_DATA_A *get_interface_details_filter(struct li
 		usbi_err(ctx, "program assertion failed - http://msdn.microsoft.com/en-us/library/ms792901.aspx is wrong.");
 		goto err_exit;
 	}
-	if ((dev_interface_details = malloc(size)) == NULL) {
+
+	dev_interface_details = (SP_DEVICE_INTERFACE_DETAIL_DATA_A*)malloc(size);
+	if (dev_interface_details == NULL) {
 		usbi_err(ctx, "could not allocate interface data for index %u.", _index);
 		goto err_exit;
 	}
@@ -800,15 +802,15 @@ static void auto_release(struct usbi_transfer *itransfer)
  */
 struct libusb_device * get_hotplug_device_node( const char* name, struct libusb_context* ctx, int online, uint8_t hcd, BOOL hotplug_poll )
 {
-	char* devId = NULL, *class = NULL, *guid = NULL, *dev_interface_path = NULL, *dev_id_path = NULL;
+	struct windows_device_priv *priv;
 	char path[MAX_PATH_LENGTH];
 	HDEVINFO devinfo;
 	DWORD dwFlag, port_nr, reg_type, size, install_state;
-	SP_DEVINFO_DATA dev_info_data = { 0 };
 	int session_id, i, nlen, ret, api, sub_api, ancestor_id;
-	BOOL found;;
+	BOOL found;
+	SP_DEVINFO_DATA dev_info_data = { 0 };
 	struct libusb_device * dev = NULL, * parent_dev = NULL;
-	struct windows_device_priv *priv;
+	char* devId = NULL, *class = NULL, *guid = NULL, *dev_interface_path = NULL, *dev_id_path = NULL;
 
 	usbi_dbg(name);
 
@@ -2161,11 +2163,13 @@ static int windows_detach_kernel_driver(struct libusb_device_handle *dev_handle,
 
 static void windows_destroy_device(struct libusb_device *dev)
 {
+	struct windows_device_priv *priv;
+
 	if (dev == NULL) {
 		return;
 	}
 
-	struct windows_device_priv *priv = _device_priv(dev);
+	priv = _device_priv(dev);
 	if (priv == NULL){
 		return;
 	}

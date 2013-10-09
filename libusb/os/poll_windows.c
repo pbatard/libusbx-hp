@@ -254,11 +254,8 @@ void exit_polling(void)
 			}
 			if (!list_empty(&_poll_fd[i].list))
 				usbi_warn(NULL, "There are some pending events in the queue");
-			list_for_each_entry(item,
-					    &_poll_fd[i].list,
-					    list,
-					    struct pipe_data){
-				if (!item){
+			list_for_each_entry(item, &_poll_fd[i].list, list, struct pipe_data) {
+				if (!item) {
 					usbi_err(NULL, "no item to free");
 					continue;
 				}
@@ -315,8 +312,7 @@ int usbi_pipe(int filedes[2])
 
 			poll_fd[i].handle = DUMMY_HANDLE;
 			poll_fd[i].overlapped = overlapped;
-			// There's no polling on the write end, so we just use READ for
-			// our needs
+			// There's no polling on the write end, so we just use READ for our needs
 			poll_fd[i].rw = RW_READ;
 			_poll_fd[i].original_handle = INVALID_HANDLE_VALUE;
 			LeaveCriticalSection(&_poll_fd[i].mutex);
@@ -423,7 +419,7 @@ static void _free_index(int _index)
 		_poll_fd[_index].thread_id = 0;
 		if (!list_empty(&_poll_fd[_index].list))
 			usbi_warn(NULL, "There are some pending events in the queue");
-		list_for_each_entry(item, &_poll_fd[_index].list, list, struct pipe_data){
+		list_for_each_entry(item, &_poll_fd[_index].list, list, struct pipe_data) {
 			if (!item) {
 				usbi_dbg("no item");
 				continue;
@@ -612,7 +608,7 @@ int usbi_poll(struct pollfd *fds, unsigned int nfds, int timeout)
 		// The following macro only works if overlapped I/O was reported pending
 		if ( (HasOverlappedIoCompleted(poll_fd[_index].overlapped))
 		  || (HasOverlappedIoCompletedSync(poll_fd[_index].overlapped)) ) {
-			poll_dbg("	completed");
+			poll_dbg("  completed");
 			// checks above should ensure this works:
 			fds[i].revents = fds[i].events;
 			triggered++;
@@ -635,7 +631,7 @@ int usbi_poll(struct pollfd *fds, unsigned int nfds, int timeout)
 			FALSE, (timeout<0)?INFINITE:(DWORD)timeout);
 		object_index = ret-WAIT_OBJECT_0;
 		if ((object_index >= 0) && ((DWORD)object_index < nb_handles_to_wait_on)) {
-			poll_dbg("	completed after wait");
+			poll_dbg("  completed after wait");
 			i = handle_to_index[object_index];
 			_index = _fd_to_index_and_lock(fds[i].fd);
 			fds[i].revents = fds[i].events;
@@ -644,7 +640,7 @@ int usbi_poll(struct pollfd *fds, unsigned int nfds, int timeout)
 				LeaveCriticalSection(&_poll_fd[_index].mutex);
 			}
 		} else if (ret == WAIT_TIMEOUT) {
-			poll_dbg("	timed out");
+			poll_dbg("  timed out");
 			triggered = 0;	// 0 = timeout
 		} else {
 			errno = EIO;
@@ -708,7 +704,7 @@ ssize_t usbi_write(int fd, const void *buf, size_t count)
 	item = calloc(1, sizeof(*item));
 	item->data = calloc(sizeof(unsigned char), count+1);
 	item->count = count;
-	for(i = 0; i < count ; i++ ){
+	for(i = 0; i < count; i++) {
 		item->data[i] = cbuf[i];
 	}
 	list_add(&item->list, &_poll_fd[_index].list);
@@ -759,13 +755,10 @@ ssize_t usbi_read(int fd, void *buf, size_t count)
 		poll_fd[_index].overlapped->Internal = STATUS_PENDING;
 	}
 
-	poll_dbg("clr pipe event (fd = %d, thread = %08X)",
-			 _index,
-			 GetCurrentThreadId()
-		);
+	poll_dbg("clr pipe event (fd = %d, thread = %08X)", _index, GetCurrentThreadId());
 
 
-	if (list_empty(&_poll_fd[_index].list)){
+	if (list_empty(&_poll_fd[_index].list)) {
 		usbi_warn(NULL, "no data in the poll");
 		r = 0;
 	} else {
@@ -787,7 +780,7 @@ ssize_t usbi_read(int fd, void *buf, size_t count)
 
 		t = MIN(pdata->count, count);
 
-		for(i = 0; i < t ; i++ ) {
+		for(i = 0; i < t; i++) {
 			cbuf[i] = pdata->data[i];
 		}
 
@@ -797,7 +790,7 @@ ssize_t usbi_read(int fd, void *buf, size_t count)
 		r = t;
 	}
 
-  out:
+out:
 	LeaveCriticalSection(&_poll_fd[_index].mutex);
 	return r;
 }
